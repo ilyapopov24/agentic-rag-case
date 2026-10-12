@@ -1,0 +1,744 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Экспертиза в ИИ-системах</title>
+<meta name="description" content="Что умеем в ИИ-системах: поиск по базе знаний, агентные системы, защита от выдумок, измерение качества, автономные агенты. По каждому пункту — код двух работающих проектов.">
+
+<meta property="og:type" content="article">
+<meta property="og:title" content="Экспертиза в ИИ-системах">
+<meta property="og:description" content="Не список технологий из резюме, а то, что лежит в коде двух работающих проектов. По каждому пункту есть исходник, лог или замер.">
+<meta property="og:locale" content="ru_RU">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%237A1F2B%22/><rect x=%2216%22 y=%2260%22 width=%2210%22 height=%2224%22 fill=%22%23F2F3F5%22/><rect x=%2232%22 y=%2260%22 width=%2210%22 height=%2224%22 fill=%22%23F2F3F5%22/><rect x=%2248%22 y=%2260%22 width=%2210%22 height=%2224%22 fill=%22%23F2F3F5%22/><rect x=%2274%22 y=%2216%22 width=%2210%22 height=%2268%22 fill=%22%23F2F3F5%22/></svg>">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&display=swap">
+
+<style>
+  :root {
+    --ground:     #F2F3F5;
+    --surface:    #FFFFFF;
+    --surface-2:  #E7EAEE;
+    --ink:        #14181D;
+    --ink-2:      #59636D;
+    --ink-3:      #7E8790;
+    --rule:       #D3D8DE;
+    --rule-soft:  #E3E7EB;
+    --accent:     #7A1F2B;
+    --accent-ink: #7A1F2B;
+    --accent-bg:  rgba(122, 31, 43, 0.07);
+    --hit:        #1E6B52;
+    --partial:    #97690F;
+    --miss:       #929AA3;
+    --shadow:     0 1px 2px rgba(20, 24, 29, .06), 0 8px 24px -16px rgba(20, 24, 29, .22);
+
+    --measure: 34rem;
+    --wide: 60rem;
+
+    color-scheme: light;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:     #0F1216;
+      --surface:    #171B21;
+      --surface-2:  #1F242B;
+      --ink:        #E4E8EC;
+      --ink-2:      #A0A9B2;
+      --ink-3:      #7C858E;
+      --rule:       #2B313A;
+      --rule-soft:  #232830;
+      --accent:     #D2818B;
+      --accent-ink: #E0A0A8;
+      --accent-bg:  rgba(210, 129, 139, 0.10);
+      --hit:        #4FA985;
+      --partial:    #C79B45;
+      --miss:       #6B747D;
+      --shadow:     0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px -16px rgba(0, 0, 0, .8);
+
+      color-scheme: dark;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground:     #0F1216;
+    --surface:    #171B21;
+    --surface-2:  #1F242B;
+    --ink:        #E4E8EC;
+    --ink-2:      #A0A9B2;
+    --ink-3:      #7C858E;
+    --rule:       #2B313A;
+    --rule-soft:  #232830;
+    --accent:     #D2818B;
+    --accent-ink: #E0A0A8;
+    --accent-bg:  rgba(210, 129, 139, 0.10);
+    --hit:        #4FA985;
+    --partial:    #C79B45;
+    --miss:       #6B747D;
+    --shadow:     0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px -16px rgba(0, 0, 0, .8);
+
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 16.5px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  img { max-width: 100%; }
+
+  /* ---------- layout ---------- */
+
+  .page {
+    max-width: var(--wide);
+    margin: 0 auto;
+    padding: 0 1.5rem 6rem;
+  }
+
+  section {
+    display: grid;
+    gap: 1.15rem;
+    padding: 3.25rem 0;
+    border-top: 1px solid var(--rule-soft);
+  }
+
+  section > * { max-width: var(--measure); }
+  section > .bleed { max-width: none; width: 100%; }
+
+  /* ---------- type ---------- */
+
+  h1, h2, h3 {
+    font-family: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+    font-weight: 600;
+    line-height: 1.16;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+    margin: 0;
+  }
+
+  h1 { font-size: clamp(2.1rem, 5.6vw, 3.35rem); letter-spacing: -0.028em; }
+  h2 { font-size: clamp(1.5rem, 3.2vw, 1.95rem); }
+  h3 { font-size: 1.12rem; font-weight: 600; letter-spacing: -0.005em; }
+
+  p { margin: 0; }
+  p + p { margin-top: 0.9rem; }
+
+  .eyebrow {
+    font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.72rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--ink-3);
+    margin: 0;
+  }
+
+  .lede {
+    font-size: 1.18rem;
+    line-height: 1.55;
+    color: var(--ink-2);
+  }
+
+  .note {
+    font-size: 0.9rem;
+    line-height: 1.55;
+    color: var(--ink-3);
+  }
+
+  strong { font-weight: 600; color: var(--ink); }
+
+  .mono {
+    font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.94em;
+  }
+
+  a {
+    color: var(--accent-ink);
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+  }
+  a:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  ul { margin: 0; padding-left: 1.1rem; display: grid; gap: 0.45rem; }
+  li::marker { color: var(--ink-3); }
+
+  /* ---------- hero ---------- */
+
+  .hero {
+    padding: 4.5rem 0 3.5rem;
+    border-top: 0;
+    gap: 1.5rem;
+    display: grid;
+  }
+  .hero > * { max-width: var(--measure); }
+  .hero > .bleed { max-width: none; width: 100%; }
+
+  .hero-rule {
+    width: 100%;
+    max-width: none;
+    height: 3px;
+    background: var(--accent);
+    opacity: .9;
+  }
+
+  /* ---------- rank strip ---------- */
+
+  .strip {
+    margin: 1.25rem 0 0;
+    padding: 1.6rem 1.5rem 1.35rem;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    box-shadow: var(--shadow);
+    display: grid;
+    gap: 0.9rem;
+    overflow-x: auto;
+  }
+
+  .strip-head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.75rem;
+  }
+
+  .strip-scale {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 62px;
+    min-width: 420px;
+  }
+
+  .tick {
+    flex: 1 1 0;
+    height: 22px;
+    background: var(--rule);
+    transform-origin: bottom;
+  }
+  .tick.window { background: var(--miss); height: 40px; }
+  .tick.target { background: var(--accent); height: 62px; }
+
+  .strip-marks {
+    display: flex;
+    gap: 2px;
+    min-width: 420px;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.7rem;
+    color: var(--ink-3);
+  }
+  .mark { flex: 1 1 0; position: relative; height: 1.2rem; }
+  .mark > span {
+    position: absolute;
+    top: 0;
+    white-space: nowrap;
+    transform: translateX(-50%);
+    left: 50%;
+  }
+  .mark.right > span { transform: none; left: auto; right: 0; }
+
+  .strip-key {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 1.4rem;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.75rem;
+    color: var(--ink-2);
+  }
+  .key { display: flex; align-items: center; gap: 0.45rem; }
+  .swatch { width: 10px; height: 10px; flex: none; }
+  .swatch.a { background: var(--miss); }
+  .swatch.b { background: var(--accent); }
+  .swatch.c { background: var(--rule); }
+
+  figure { margin: 0; }
+  figcaption { max-width: 46rem; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .tick { animation: rise .5s cubic-bezier(.2,.7,.3,1) backwards; }
+    @keyframes rise { from { transform: scaleY(0); opacity: 0; } }
+  }
+
+  /* ---------- stat row ---------- */
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+  }
+  .stat {
+    background: var(--surface);
+    padding: 1.15rem 1.2rem 1.25rem;
+    display: grid;
+    gap: 0.3rem;
+    align-content: start;
+  }
+  .stat-num {
+    font-family: "IBM Plex Serif", Georgia, serif;
+    font-size: 1.85rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    color: var(--accent-ink);
+  }
+  .stat-label { font-size: 0.86rem; color: var(--ink-2); line-height: 1.4; }
+
+  /* ---------- tables ---------- */
+
+  .table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--rule);
+    background: var(--surface);
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 0.92rem;
+    min-width: 34rem;
+  }
+  caption {
+    caption-side: top;
+    text-align: left;
+    padding: 0.9rem 1.1rem 0.55rem;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-3);
+  }
+  th, td {
+    text-align: left;
+    padding: 0.68rem 1.1rem;
+    border-top: 1px solid var(--rule-soft);
+    vertical-align: top;
+  }
+  thead th {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-weight: 500;
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--ink-3);
+    border-top: 1px solid var(--rule);
+    white-space: nowrap;
+  }
+  tbody th { font-weight: 500; white-space: nowrap; }
+  td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  tr.total th, tr.total td { border-top: 1px solid var(--rule); font-weight: 600; }
+
+  /* ---------- verdict matrix ---------- */
+
+  .matrix td { text-align: center; padding: 0.6rem 0.5rem; }
+  .matrix thead th:not(:first-child) { text-align: center; }
+  .matrix tbody th { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.82rem; }
+  .matrix tbody th .n { color: var(--ink-3); margin-right: 0.5rem; }
+
+  .dot {
+    display: inline-block;
+    width: 13px; height: 13px;
+    border-radius: 50%;
+    vertical-align: -1px;
+  }
+  .dot.hit { background: var(--hit); }
+  .dot.part {
+    background: linear-gradient(90deg, var(--partial) 0 50%, transparent 50% 100%);
+    border: 1.5px solid var(--partial);
+  }
+  .dot.miss { border: 1.5px solid var(--miss); }
+
+  .sr {
+    position: absolute; width: 1px; height: 1px;
+    padding: 0; margin: -1px; overflow: hidden;
+    clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+
+  /* ---------- class cards ---------- */
+
+  .classes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15.5rem, 1fr));
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+  }
+  .cls {
+    background: var(--surface);
+    padding: 1.35rem 1.3rem 1.5rem;
+    display: grid;
+    gap: 0.6rem;
+    align-content: start;
+  }
+  .cls-tag {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-3);
+  }
+  .cls-q {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.83rem;
+    color: var(--ink-2);
+    background: var(--surface-2);
+    padding: 0.5rem 0.7rem;
+    border-left: 2px solid var(--rule);
+  }
+  .cls-fix {
+    font-size: 0.9rem;
+    padding-top: 0.55rem;
+    border-top: 1px solid var(--rule-soft);
+    color: var(--ink-2);
+  }
+  .cls-fix b { color: var(--accent-ink); font-weight: 600; }
+
+  /* ---------- callout ---------- */
+
+  .callout {
+    background: var(--accent-bg);
+    border-left: 3px solid var(--accent);
+    padding: 1.1rem 1.3rem;
+    display: grid;
+    gap: 0.55rem;
+  }
+  .callout .eyebrow { color: var(--accent-ink); }
+
+  .quiet {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    padding: 1.1rem 1.3rem;
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  /* ---------- split lists ---------- */
+
+  .split {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+  }
+  .split > div {
+    background: var(--surface);
+    padding: 1.3rem;
+    display: grid;
+    gap: 0.75rem;
+    align-content: start;
+  }
+
+  /* ---------- services ---------- */
+
+  .services { display: grid; gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
+  .svc {
+    background: var(--surface);
+    padding: 1.3rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.5rem;
+  }
+  @media (min-width: 44rem) {
+    .svc { grid-template-columns: 13rem minmax(0, 1fr); gap: 1.5rem; align-items: start; }
+  }
+  .svc h3 { line-height: 1.35; }
+
+  /* ---------- contact ---------- */
+
+  .contact {
+    margin-top: 3.25rem;
+    padding: 2rem 1.5rem;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    display: grid;
+    gap: 0.8rem;
+    box-shadow: var(--shadow);
+  }
+  .contact h2 { max-width: var(--measure); }
+  .contact-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem 1.6rem;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.92rem;
+  }
+
+  
+
+</style>
+</head>
+<body>
+
+<main class="page">
+
+  <header class="hero">
+    <div class="hero-rule bleed"></div>
+    <h1>Что мы умеем в ИИ-системах</h1>
+    <p class="lede">
+      Ниже — не список технологий из резюме, а то, что лежит в коде двух работающих проектов.
+      По каждому пункту есть исходник, лог или замер.
+    </p>
+
+    <div class="callout">
+      <p class="eyebrow">Если коротко</p>
+      <p>
+        Собрать бота, который отвечает по вашим данным, сегодня умеют многие. Сложность
+        не в этом, а в том, чтобы знать, работает ли он — и не врёт ли. Мы умеем это измерять
+        и ловим собственные ошибки до того, как их поймает заказчик.
+      </p>
+    </div>
+  </header>
+
+  <section>
+    <p class="eyebrow">Проекты, на которых это сделано</p>
+    <h2>Два живых проекта</h2>
+
+    <div class="services bleed">
+      <div class="svc">
+        <h3>Бот по видео-архиву</h3>
+        <div>
+          <p>
+            Телеграм-бот, отвечающий по корпусу из 303 часов видео: 161 лекция, 3920 фрагментов
+            в базе знаний. Агентный поиск, защита от выдумок, мониторинг в проде.
+          </p>
+          <p><a href="./">Разбор кейса с замерами</a></p>
+        </div>
+      </div>
+      <div class="svc">
+        <h3>Подбор дегустаций из каталога</h3>
+        <div>
+          <p>
+            Сервис, который собирает вертикальные дегустации — одно вино разных лет — из живого
+            каталога магазина и отдаёт прямые ссылки на бутылки. Скрейпинг, фасетные фильтры,
+            веб-интерфейс, распознавание запроса на свободном русском.
+          </p>
+          <p><a href="https://deghelper.ru">deghelper.ru</a></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">Навыки</p>
+    <h2>Что именно за этим стоит</h2>
+
+    <div class="classes bleed">
+
+      <div class="cls">
+        <p class="cls-tag">Поиск по данным</p>
+        <h3>База знаний и поиск по ней</h3>
+        <p>
+          Конвейер от сырого видео до отвечающей базы: расшифровка, чистка устной речи,
+          нарезка на смысловые фрагменты, эмбеддинги, векторная база.
+        </p>
+        <p class="cls-fix">
+          Гибридный поиск по смыслу и по словам одновременно · расширение запроса
+          и поиск по гипотетическому ответу · переранжирование кандидатов ·
+          смена модели эмбеддингов с замером эффекта до и после
+        </p>
+      </div>
+
+      <div class="cls">
+        <p class="cls-tag">Агенты</p>
+        <h3>Агентные системы</h3>
+        <p>
+          Агент сам решает, что искать, переформулирует запрос и ходит в базу столько раз,
+          сколько нужно. Половина работы здесь — не поиск, а тормоза.
+        </p>
+        <p class="cls-fix">
+          Потолок числа вызовов, дедуп повторных запросов, остановка при зацикливании —
+          чинило вырождение в 22 поиска на один вопрос · вызов функций моделью ·
+          оркестрация параллельных веток · ретраи с разбором типа ошибки
+        </p>
+      </div>
+
+      <div class="cls">
+        <p class="cls-tag">Правдивость</p>
+        <h3>Защита от выдумок</h3>
+        <p>
+          Ответ собирается программно, а не берётся тем, что написала модель. Ссылки
+          на несуществующие фрагменты отрезаются, каждая цитата проверяется отдельно.
+        </p>
+        <p class="cls-fix">
+          Два независимых гейта: относится ли фрагмент к вопросу и говорит ли он то,
+          что о нём написано · голосование нескольких проверок · разделение «из источника»
+          и «из головы модели» в выдаче
+        </p>
+      </div>
+
+      <div class="cls">
+        <p class="cls-tag">Измерение</p>
+        <h3>Проверка качества</h3>
+        <p>
+          Контролируемый эксперимент: корпус, модели и вопросы неизменны, меняется только
+          то, что проверяем. Ответы читаются руками и сверяются с содержимым базы.
+        </p>
+        <p class="cls-fix">
+          Чередующийся A/B вместо серийного — серийный однажды дал противоположный вывод ·
+          переключение веток флагом из одной сборки · несколько прогонов на вопрос,
+          потому что пайплайн стохастичен · детект вырожденного вывода модели
+        </p>
+      </div>
+
+      <div class="cls">
+        <p class="cls-tag">Автономность</p>
+        <h3>Агенты, работающие без нас</h3>
+        <p>
+          Ночной агент-архитектор читает весь код проекта и присылает отчёт о том, что
+          накопилось в архитектуре, пока команда тушила пожары.
+        </p>
+        <p class="cls-fix">
+          Роль задана через позицию, а не через список задач · журнал решений как двусторонний
+          контракт: агенту предписано перепроверять наши решения и возвращать отклонённое,
+          если аргументация не выдерживает критики · предложение и реализация разделены
+        </p>
+      </div>
+
+      <div class="cls">
+        <p class="cls-tag">Промпты</p>
+        <h3>Дисциплина работы с промптами</h3>
+        <p>
+          Узкие проверки получают ровно то, что нужно для решения, и ничего сверх —
+          так их нельзя спровоцировать посторонним контекстом.
+        </p>
+        <p class="cls-fix">
+          Запрет зашивать в промпт оснастку под конкретный наблюдённый случай ·
+          автоматический хук, блокирующий такие правки — внешний контроль над собственной
+          повторяющейся ошибкой · показ правки до применения · ремонт битого JSON вместо падения
+        </p>
+      </div>
+
+      <div class="cls">
+        <p class="cls-tag">Прод</p>
+        <h3>Эксплуатация</h3>
+        <p>
+          Разбор логов по расписанию, инцидент-файлы, алерты — и отдельная проверка самого
+          канала алертов, чтобы тишина означала «всё хорошо», а не «алерты сломались».
+        </p>
+        <p class="cls-fix">
+          Ограничение параллелизма против перегрузки базы: таймауты с 68 % до 8 % ·
+          двухфазная выборка ради трафика: в 25–37 раз меньше · таймауты на внешние вызовы ·
+          выбор модели под лимиты и паттерн нагрузки
+        </p>
+      </div>
+
+      <div class="cls">
+        <p class="cls-tag">Данные</p>
+        <h3>Сбор и подготовка корпуса</h3>
+        <p>
+          Скрейпинг с приведением к единому контракту, чтобы вся логика ниже по потоку
+          не знала про источник. В одном из проектов источнико-зависим ровно один файл из десяти.
+        </p>
+        <p class="cls-fix">
+          Словарь исправлений распознавания речи под терминологию домена, около 210 правок ·
+          чистка корпуса моделью с проверкой каждой правки и бэкапом · дедупликация
+          при вставке · обнаружение данных, испорченных на этапе загрузки
+        </p>
+      </div>
+
+      <div class="cls">
+        <p class="cls-tag">Инструменты</p>
+        <h3>Разработка с Claude Code</h3>
+        <p>
+          Не «пользуемся ассистентом», а настраиваем его под проект: режимы работы, запреты,
+          память между сессиями, собственные инструменты.
+        </p>
+        <p class="cls-fix">
+          Скиллы как упакованный рабочий процесс · слэш-команды как режимы сессии ·
+          хуки, блокирующие известные антипаттерны · файловая память с индексом
+          и перекрёстными ссылками · собственный MCP-сервер · запуск по расписанию без оператора
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">Честно</p>
+    <h2>Что здесь редкое, а что обязательный минимум</h2>
+
+    <div class="split bleed">
+      <div>
+        <h3>Чем отличаемся</h3>
+        <p>
+          Измерение, защита от выдумок, автономные агенты и дисциплина работы с промптами.
+        </p>
+        <p class="note">
+          Это не техники, а привычки: ничего не считать сделанным без замера, не верить
+          формулировке модели без сверки с источником, ставить внешние запреты на собственные
+          повторяющиеся ошибки.
+        </p>
+      </div>
+      <div>
+        <h3>Что ожидается по умолчанию</h3>
+        <p>
+          Гибридный поиск, переранжирование, расширение запроса, агентный цикл.
+        </p>
+        <p class="note">
+          Это стандартный набор из статей про RAG. Владеть им обязательно, но сам по себе
+          он никого не отличает — и мы не станем называть его авторской методикой.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">Стек</p>
+    <h2>На чём работаем</h2>
+
+    <div class="split bleed">
+      <div>
+        <h3>ИИ и данные</h3>
+        <p class="mono note">
+          OpenAI (эмбеддинги, генерация, вызов функций) · Claude и Claude Code · Koog (агенты) ·
+          Supabase + pgvector · полнотекстовый поиск Postgres · SQLite
+        </p>
+      </div>
+      <div>
+        <h3>Разработка и прод</h3>
+        <p class="mono note">
+          Kotlin / JVM · Python · FastAPI · HTMX · Telegram Bot API · TypeScript ·
+          Docker · Caddy · systemd · bash
+        </p>
+      </div>
+      <div>
+        <h3>Мобильная разработка</h3>
+        <p>Большая экспертиза в мобильной разработке, в частности под Android</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="contact">
+    <p class="eyebrow">Связаться</p>
+    <h2>Расскажите задачу — скажем, что из этого в ней применимо</h2>
+    <div class="contact-links">
+      <a href="https://t.me/ilia_a_popov">Telegram: @ilia_a_popov</a>
+      <a href="mailto:hetfieldan@yandex.ru">hetfieldan@yandex.ru</a>
+    </div>
+  </div>
+
+</main>
+
+
+</body>
+</html>
